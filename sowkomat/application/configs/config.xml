@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<config>
+    <var name="version">v0.001</var>
+    <var name="languages" array="true">
+        <item key="0">pl</item>
+    </var>
+    <var name="namespace">coach</var>
+    <var name="autoLogoutTime">30</var>
+</config>

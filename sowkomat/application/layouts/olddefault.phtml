@@ -1,0 +1,38 @@
+<?= $this->doctype(); ?>
+<html>
+    <head>
+        <?= $this->headMeta(); ?>
+        <?= $this->headTitle(); ?>
+        <?= $this->headLink(); ?>
+        <?= $this->dojo(); ?>
+        <?= $this->headScript(); ?>
+    </head>
+    <body class="claro">
+        <div id="page_loader"></div>
+        <div class="content">
+            <div class="middle">
+                <div class="logo">
+                    <div class="clear">
+                        <div class="left">
+                            <img width="110" src="/sowkomat/public/images/logo.png" style="margin-right: 50px;" />
+                        </div>
+                        <div class="left">
+                            <div style="margin: 25px 0 10px 0;">
+                                <span><?= $this->translate('webTitle'); ?></span>
+                            </div>
+                            <i><?= date('d.m.Y, H:i'); ?></i>
+                        </div>
+                        <div class="right">
+                            <img src="/sowkomat/public/images/sowkatechsmaller4.png" style="margin: 0 -61px -40px 0; height: 150px" />
+<img src="/sowkomat/public/images/sowkalanlea.png" style="margin: 0 -2px -40px 0; height: 150px" />
+                        </div>
+                        <!--<div class="right">
+                            <div class="copyrights"><a href="mailto:mariusz.polchowski@gmail.com">mariusz.polchowski@gmail.com</a>&copy;</div>
+                        </div>-->
+                    </div>
+                </div>
+                <?= $this->layout()->content; ?>
+            </div>
+        </div>
+    </body>
+</html>

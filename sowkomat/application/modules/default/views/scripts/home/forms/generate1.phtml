@@ -1,0 +1,258 @@
+<script type="text/javascript">
+    var button;
+    dojo.require('dijit.form.Form');
+    dojo.require('dijit.layout.TabContainer');
+    dojo.require('dijit.layout.ContentPane');
+    dojo.require('dijit.form.CheckBox');
+    
+    var data = <?= $this->element->getResources(); ?>;
+        
+    function init() {
+        dojo.connect(dijit.byId('book'), 'onChange', null, function(value) {
+            // Resources.
+            dijit.byId('translation').set('value', 0);
+            dijit.byId('translation').removeOption(dijit.byId('translation').getOptions());
+            
+            dijit.byId('translation').addOption({label: '&nbsp;', value: 0});
+            for (var key in data[value]) {
+                dijit.byId('translation').addOption({label: key, value: key});
+            }
+        });
+        
+        dojo.connect(dijit.byId('translation'), 'onChange', null, function(value) {
+            // Units.
+            /*dijit.byId('unit').set('value', 0);
+            dijit.byId('unit').removeOption(dijit.byId('unit').getOptions());
+
+            dijit.byId('unit').addOption({label: '&nbsp;', value: 0});*/
+            var units = dojo.byId('units');
+            dojo.forEach(dijit.findWidgets(units), function(widget) {
+                widget.destroyRecursive(true);
+            });
+            dojo.empty(units);
+            
+            if (value && typeof data[dijit.byId('book').get('value')] !== 'undefined') {
+                dojo.forEach(data[dijit.byId('book').get('value')][value], function(item) {
+                    var div = dojo.create('div', {'class': 'left'}, units);
+                    new dijit.form.CheckBox({
+                        'id': 'unit_' + item,
+                        'name': 'unit_' + item
+                    }, dojo.create('div', null, div));
+                    dojo.create('label', {
+                        'for': 'unit_' + item,
+                        'innerHTML': item
+                    }, div);
+                    //dijit.byId('unit').addOption({label: item, value: item});
+                });
+            }
+            
+            checkUnits();
+        });
+        
+        var container = new dijit.layout.TabContainer({
+            'style': 'width: ' + dojo.style(dojo.byId('container'), 'width') + 'px; height: 420px;'
+        }, 'container');
+        
+        container.addChild(new dijit.layout.ContentPane({
+            'title': '<?= $this->translate('test'); ?>',// + ' # ' + index + 1,
+            'content': ''
+        }));
+        
+        container.startup();
+    }
+    
+    function checkUnits() {
+        if (!dojo.query('#units input[type="checkbox"]').length) {
+            dojo.create('i', {'innerHTML': '(<?= $this->translate('none'); ?>)'}, dojo.byId('units'));
+        }
+    }
+    
+    function submit() {
+        if (dijit.byId('form').validate() && dojo.query('#units input[type="checkbox"]:checked').length) {
+            if (false) {//dijit.byId('output').get('value')) { 
+                // Document.               
+                window.open(parseURIparams('<?= $this->url(array('module' => 'default', 'controller' => 'home', 'action' => 'generate'), NULL, TRUE); ?>', {
+                    'book': dijit.byId('book').get('value'),
+                    'translation': dijit.byId('translation').get('value'),
+                    'unit': dijit.byId('unit').get('value'),
+                    'difficiult': dijit.byId('difficulty').get('value')//,
+                    //'count': dijit.byId('count').get('value')
+                }, true));
+            } else {
+                // Samples.
+                if(button == "pdf") {
+                    dojo.byId('form').action = '<?= $this->url(array('module' => 'default', 'controller' => 'home', 'action' => 'pdf'), NULL, TRUE); ?>';
+                
+                    return true;
+                } else {
+                    dojo.xhrPost({
+                        form: dojo.byId('form'),
+                        handleAs: 'json',
+                        load: function(data) {
+                            var container = dijit.byId('container');
+    //                        if (!container) {
+    //                            container = new dijit.layout.TabContainer({
+    //                                'style': 'width: ' + dojo.style(dojo.byId('container'), 'width') + 'px; height: 420px;'
+    //                            }, 'container');
+    //                        } else {
+                                dojo.forEach(container.getChildren(), function(pane) {
+                                    container.removeChild(pane);
+                                });
+    //                        }
+
+                            dojo.forEach(data, function(sample, index) {
+                                // Content
+                                var content = '<ul>';
+                                dojo.forEach(sample, function(item) {
+                                    content += '<li><span>' + item + '</span></li>';
+                                });
+                                content += '</ul>';
+
+                                container.addChild(new dijit.layout.ContentPane({
+                                    'title': '<?= $this->translate('test'); ?>',// + ' # ' + index + 1,
+                                    'content': content
+                                }));
+                            });
+
+                            //container.startup();                        
+                            dojo.style(dojo.byId('samples'), 'visibility', 'visible');
+                        },
+                        error: function(error) {
+                            alert('Something went wrong! ;(');
+                        }
+                    });
+                }
+                
+            }
+        } else {
+            alert('<?= $this->translate('invalidForm'); ?>');
+        }
+        
+        return false;
+    }
+    
+    dojo.ready(function() {
+        init();
+        
+        checkUnits();
+        
+        dojo.connect(dojo.query("input[name=pdfSubmit]")[0], "onclick", function(evt){
+            button = "pdf";
+        });
+        dojo.connect(dojo.query("input[name=submit]")[0], "onclick", function(evt){
+            button = "submit";
+        });
+    });
+</script>
+
+<style type="text/css">
+    #form .field .inner {
+        width: 354px;
+    }
+    
+    #samples {
+        /*visibility: hidden;*/
+        margin: 0 10px;
+    }
+    
+    #samples #container ul {
+        margin: 0 25px;
+        padding: 0;
+    }
+    
+    #samples #container ul li {
+        color: #777;
+        padding: 5px 10px;
+        font-size: 16px;
+    }
+    
+    #samples #container ul li span {
+        color: #000;
+        font-weight: bold;
+        letter-spacing: 1px;
+    }
+    
+    #units {
+        width: 227px;
+        min-height: 17px;
+        text-align: left;
+    }
+    
+    #units label {
+        padding-left: 2px;
+    }
+    
+    #units i {
+        color: #999;
+    }
+</style>
+
+<form id="form" name="form" data-dojo-type="dijit.form.Form" encType="multipart/form-data" onSubmit="javascript: return submit();" name="<?= $this->element->getName(); ?>" method="<?= $this->element->getMethod(); ?>" action="<?= $this->element->getAction(); ?>">
+    <fieldset>
+        <legend><?= $this->translate('data'); ?></legend>
+        <table>
+            <tr>
+                <td class="label"><label for="book"><?= $this->element->getElement('book')->getLabel(); ?>:</label></td>
+                <td class="field">
+                    <?= $this->{$this->element->getElement('book')->helper}(
+                    $this->element->getElement('book')->getName(),
+                    $this->element->getElement('book')->getValue(),
+                    $this->element->getElementParams('book'),
+                    $this->element->getElementAttribs('book'),
+                    $this->element->getElement('book')->getMultiOptions()); ?>
+                    <?= $this->element->renderErrors($this->element->getElement('book')); ?>
+                </td>
+            </tr>
+            <tr>
+                <td class="label"><label for="resource"><?= $this->element->getElement('translation')->getLabel(); ?>:</label></td>
+                <td class="field">
+                    <?= $this->{$this->element->getElement('translation')->helper}(
+                    $this->element->getElement('translation')->getName(),
+                    $this->element->getElement('translation')->getValue(),
+                    $this->element->getElementParams('translation'),
+                    $this->element->getElementAttribs('translation'),
+                    $this->element->getElement('translation')->getMultiOptions()); ?>
+                    <?= $this->element->renderErrors($this->element->getElement('translation')); ?>
+                </td>
+            </tr>
+            <tr>
+                <td class="label"><label for="unit"><?= $this->element->getElement('unit')->getLabel(); ?>:</label></td>
+                <td class="field">
+                    <div class="clear">
+                        <div class="clear right" id="units"></div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td class="label"><label for="difficulty"><?= $this->element->getElement('difficulty')->getLabel(); ?>:</label></td>
+                <td class="field">
+                    <?= $this->{$this->element->getElement('difficulty')->helper}(
+                    $this->element->getElement('difficulty')->getName(),
+                    $this->element->getElement('difficulty')->getValue(),
+                    $this->element->getElementParams('difficulty'),
+                    $this->element->getElementAttribs('difficulty'),
+                    $this->element->getElement('difficulty')->getMultiOptions()); ?>
+                    <?= $this->element->renderErrors($this->element->getElement('difficulty')); ?>
+                </td>
+            </tr>
+            <tr>
+                <td class="controls" colspan="2">
+                    <?= $this->{$this->element->getElement('submit')->helper}(
+                    $this->element->getElement('submit')->getName(),
+                    $this->element->getElement('submit')->getLabel(),
+                    $this->element->getElementParams('submit'),
+                    $this->element->getElementAttribs('submit')); ?>
+                    <?= $this->{$this->element->getElement('pdfSubmit')->helper}(
+                    $this->element->getElement('pdfSubmit')->getName(),
+                    $this->element->getElement('pdfSubmit')->getLabel(),
+                    $this->element->getElementParams('pdfSubmit'),
+                    $this->element->getElementAttribs('pdfSubmit')); ?>
+                </td>
+            </tr>
+        </table>
+    </fieldset>
+</form>
+
+<div id="samples">
+    <div id="container"></div>
+</div>
