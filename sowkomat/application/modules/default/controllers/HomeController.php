@@ -56,9 +56,20 @@ class HomeController extends Zend_Controller_Action {
                 }
                 else 
                 {
-                    foreach ($output as $key => $data) {
-                        $output[$key] = array_values_recursive($data, 'WORD');
+                    foreach ($output[0] as $key => $data) {
+                        $other1[$key] = trim($data[4]);
+                        $other2[$key] = !strlen(trim($data[5])) ? '-' : $data[5];
+                        $other3[$key] = !strlen(trim($data[6])) ? '-' : $data[6];
                     }
+                    $res = [];
+                    foreach ($output as $key => $data) {
+                        $res[$key][0] = array_values_recursive($data, 'WORD');
+                        $res[$key][1] = $other1;
+                        $res[$key][2] = $other2;
+                        $res[$key][3] = $other3;
+                    }
+                    $output = $res;
+                    file_put_contents('test.txt', var_export($output, true));
                 }
                 
                 $this->getResponse()
