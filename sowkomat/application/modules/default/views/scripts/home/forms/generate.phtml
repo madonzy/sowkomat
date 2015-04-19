@@ -8,8 +8,30 @@
 
     var data = <?= $this->element->getResources(); ?>;
 
+    var showUnitComboBox        = true;
+    var showTranslateComboBox   = true;
+    var showDifficultyComboBox  = true;
+
     function init() {
+
+        function resolveIrregularVerbs(value) {
+            if(value == 'Czasowniki nieregularne') {
+                document.getElementById('translationtr').setAttribute('style', "display:none");
+                document.getElementById('unitstr').setAttribute('style', "display:none");
+                document.getElementById('difficultytr').setAttribute('style', "display:none");
+                document.getElementById('crosswordButton').setAttribute('style', "display:none");
+                dojo.style(dijit.byId('pdfSubmit').domNode, "display", "none");
+            } else {
+                document.getElementById('translationtr').removeAttribute('style');
+                document.getElementById('unitstr').removeAttribute('style');
+                document.getElementById('difficultytr').removeAttribute('style');
+                document.getElementById('crosswordButton').removeAttribute('style');
+                dojo.style(dijit.byId('pdfSubmit').domNode, "display", "inline-block");
+            }
+        }
+
         dojo.connect(dijit.byId('book'), 'onChange', null, function(value) {
+
             // Resources.
             dijit.byId('translation').set('value', 0);
             dijit.byId('translation').removeOption(dijit.byId('translation').getOptions());
@@ -19,14 +41,16 @@
             for (var key in data[value]) {
                 dijit.byId('translation').addOption({label: key, value: key});
             }
+
+            resolveIrregularVerbs(value);
         });
 
         dojo.connect(dijit.byId('translation'), 'onChange', null, function(value) {
             // Units.
             /*dijit.byId('unit').set('value', 0);
-            dijit.byId('unit').removeOption(dijit.byId('unit').getOptions());
+             dijit.byId('unit').removeOption(dijit.byId('unit').getOptions());
 
-            dijit.byId('unit').addOption({label: '&nbsp;', value: 0});*/
+             dijit.byId('unit').addOption({label: '&nbsp;', value: 0});*/
             var units = dojo.byId('units');
             dojo.forEach(dijit.findWidgets(units), function(widget) {
                 widget.destroyRecursive(true);
@@ -51,6 +75,7 @@
                         //dijit.byId('unit').addOption({label: item, value: item});
                     }
                 });
+
             }
 
             checkUnits();
@@ -59,6 +84,7 @@
                 dojo.style(dijit.byId('pdfSubmit').domNode, "display", "none");
             else
                 dojo.style(dijit.byId('pdfSubmit').domNode, "display", "inline-block");
+
         });
 
         var container = new dijit.layout.TabContainer({
@@ -192,7 +218,53 @@
 
             }
         } else {
-            alert('<?= $this->translate('invalidForm'); ?>');
+            if(dijit.byId('book').value == 'Czasowniki nieregularne') {
+                dojo.xhrPost({
+                    form: dojo.byId('form'),
+                    handleAs: 'json',
+                    load: function(data) {
+
+                        var container = dijit.byId('container');
+                        dojo.forEach(container.getChildren(), function(pane) {
+                            container.removeChild(pane);
+                        });
+
+                        var sprawdzian = '<form name="sprawdzian"><table class="test"><caption id="totalScoreText">Total score: 0 / 10</caption>';
+                        for(var i = 0; i < data.length; ++i) {
+                            sprawdzian += '<tr>' +
+                            '<td>' +
+                            '<strong>' + data[i][0] + '</strong>' +
+                            '</td>' +
+                            '<td>' +
+                            '<input style="width: 100px;" class="' + data[i][0] + '" type="text" onkeyup="checkIrregularAnswer(this, \'' + data[i][1] + '\');"/>' +
+                            '</td>' +
+                            '<td>' +
+                            '<input style="width: 100px;" class="' + data[i][0] + '" type="text" onkeyup="checkIrregularAnswer(this, \'' + data[i][2] + '\');"/>' +
+                            '</td>' +
+                            '<td>' +
+                            '<input style="width: 100px;" class="' + data[i][0] + '" type="text" onkeyup="checkIrregularAnswer(this, \'' + data[i][3] + '\');"/>' +
+                            '</td>' +
+                            '</tr>';
+                        }
+                        sprawdzian += '</table></form>';
+
+                        container.addChild(new dijit.layout.ContentPane({
+                            'title': 'Sprawdzian',// + ' # ' + index + 1,
+                            'content': sprawdzian
+                        }));
+
+
+                        //container.startup();
+                        dojo.style(dojo.byId('samples'), 'visibility', 'visible');
+                    },
+                    error: function(error) {
+                        //alert('Something went wrong! ;(');
+                        alert(error);
+                    }
+                });
+            } else {
+                alert('<?= $this->translate('invalidForm'); ?>');
+            }
         }
 
         return false;
@@ -232,6 +304,32 @@
             }
         }
     }
+
+    function checkIrregularAnswer(input, expectedValue, index) {
+        if(input.value == expectedValue) {
+
+            var friends = document.getElementsByClassName(input.getAttribute('class'));
+
+            input.setAttribute('class', input.getAttribute('class') + ' true');
+            input.setAttribute('disabled', 'disabled');
+
+            for(var i = 0; i < 3; ++i) {
+                if(!friends[i].hasClass('true'))
+                    return false;
+            }
+
+            ++totalScore;
+            document.getElementById('totalScoreText').innerText = 'Total score: ' + totalScore + ' / 10'
+            if(totalScore == 10) {
+                if(confirm("Bardzo dobrze! Czy chcesz wygenerować nowy test?"))
+                    submit();
+            }
+        }
+    }
+
+    Element.prototype.hasClass = function(className) {
+        return this.className && new RegExp("(^|\\s)" + className + "(\\s|$)").test(this.className);
+    };
 
 </script>
 
@@ -314,7 +412,7 @@
                     <?= $this->element->renderErrors($this->element->getElement('book')); ?>
                 </td>
             </tr>
-            <tr>
+            <tr id="translationtr">
                 <td class="label"><label for="resource"><?= $this->element->getElement('translation')->getLabel(); ?>:</label></td>
                 <td class="field">
                     <?= $this->{$this->element->getElement('translation')->helper}(
@@ -326,7 +424,7 @@
                     <?= $this->element->renderErrors($this->element->getElement('translation')); ?>
                 </td>
             </tr>
-            <tr>
+            <tr id="unitstr">
                 <td class="label"><label for="unit"><?= $this->element->getElement('unit')->getLabel(); ?>:</label></td>
                 <td class="field">
                     <div class="clear">
@@ -334,7 +432,7 @@
                     </div>
                 </td>
             </tr>
-            <tr>
+            <tr id="difficultytr">
                 <td class="label"><label for="difficulty"><?= $this->element->getElement('difficulty')->getLabel(); ?>:</label></td>
                 <td class="field">
                     <?= $this->{$this->element->getElement('difficulty')->helper}(
@@ -363,8 +461,8 @@
 
 
 
-                    <span class="dijit dijitReset dijitInline action dijitButton" >
-                        <span onclick="openCrossword()" class="dijitReset dijitInline dijitButtonNode" >
+                    <span  class="dijit dijitReset dijitInline action dijitButton" >
+                        <span id="crosswordButton" onclick="openCrossword()" class="dijitReset dijitInline dijitButtonNode" >
                             <span class="dijitReset dijitStretch dijitButtonContents" style="-webkit-user-select: none;">
                                 <span class="dijitReset dijitInline dijitIcon dijitNoIcon"></span>
                                 <span class="dijitReset dijitToggleButtonIconChar">●</span>

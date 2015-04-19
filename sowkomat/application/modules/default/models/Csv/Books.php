@@ -100,6 +100,32 @@ class Model_Csv_Books extends Model_Csv {
         
         return empty($data['output']) ? FALSE : $data['output'];
     }
+
+    public function getIrregularDictionary($book) {
+        try {
+            $handle = fopen($this->_path . '/' . $book . '/' . $book . '.csv', 'r');
+
+            if (($header = fgetcsv($handle, NULL, ';')) === FALSE
+                || ($keyUnit = array_search('UNIT', $header)) === FALSE
+                || ($keyDif = array_search('DIF', $header)) === FALSE) {
+                throw new Exception;
+            }
+
+            while (($row = fgetcsv($handle, NULL, ';')) !== FALSE && $row[0]) {
+                $data['items'][] = self::convert($row);
+            }
+
+            ksort($data['items']);
+
+            fclose($handle);
+        } catch (Exception $e) {
+            @fclose($handle);
+
+            die('Something went wrong during file analysing process! ;(');
+        }
+
+        return $data;
+    }
     
     public function getAllDictionary($book, $resource, array $units, $difficulty = NULL, $count = 1) {
         $data = array('count' => 0);
