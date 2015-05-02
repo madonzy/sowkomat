@@ -45,6 +45,8 @@
 	<script src="js/jquery.crossword.js"></script>
 	<script>
 
+        var jsAudioLanguage = '<?php echo $jsAudioLanguage ?>';
+
 		(function($) {
 			$(function() {
 				// provide crossword entries in an array of objects like the following example
@@ -200,13 +202,13 @@
 
 <body>
 
-<div class="info">
-	<h1><?= $bookTitle; ?></h1>
-	<h2>Units: <?= $unitsInStr; ?></h2>
-	<h3><?= $trslFromTo; ?></h3>
-</div>
+    <div class="info">
+        <h1><?= $bookTitle; ?></h1>
+        <h2>Units: <?= $unitsInStr; ?></h2>
+        <h3><?= $trslFromTo; ?></h3>
+    </div>
 
-<div id="puzzle-wrapper"><!-- crossword puzzle appended here --></div>
+    <div id="puzzle-wrapper"><!-- crossword puzzle appended here --></div>
 
 </body>
 </html>

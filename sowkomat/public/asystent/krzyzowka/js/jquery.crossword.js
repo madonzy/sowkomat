@@ -311,6 +311,10 @@
 
 						$('.clues-active').addClass('clue-done');
 
+                        var audio = new Audio('http://private.local/sowkomat/public/asystent/krzyzowka/php/speech.php?ie=UTF-8&q=' + currVal + '&tl=' + jsAudioLanguage);
+                        console.log(audio);
+                        audio.play();
+
 						solved.push(valToCheck);
 						solvedToggle = true;
 
