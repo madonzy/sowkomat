@@ -7,10 +7,7 @@
     dojo.require('dijit.form.CheckBox');
 
     var data = <?= $this->element->getResources(); ?>;
-
-    var showUnitComboBox        = true;
-    var showTranslateComboBox   = true;
-    var showDifficultyComboBox  = true;
+    var totalScore = 0;
 
     function init() {
 
@@ -106,6 +103,7 @@
     }
 
     function submit() {
+        totalScore = 0;
         if (dijit.byId('form').validate() && dojo.query('#units input[type="checkbox"]:checked').length) {
             //alert(dijit.byId('unit').get('value'));
             if(dijit.byId('translation').get('value')=='mieszane')
@@ -286,8 +284,6 @@
             button = "submit";
         });
     });
-
-    var totalScore = 0;
 
     function checkAnswer(input, expectedValue1, expectedValue2, expectedValue3) {
         if(input.value == expectedValue1
