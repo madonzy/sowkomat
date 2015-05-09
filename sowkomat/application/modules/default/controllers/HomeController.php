@@ -26,6 +26,7 @@ class HomeController extends Zend_Controller_Action {
         $resources = $model->getResources();
         
         $book = $this->getRequest()->getParam('book');
+        $difficulty = $this->getRequest()->getParam('difficulty', NULL);
 
         if($book != 'Czasowniki nieregularne') {
             $resource = $this->getRequest()->getParam('translation');
@@ -36,7 +37,6 @@ class HomeController extends Zend_Controller_Action {
                     $units[] = $key;
                 }
             }
-            $difficulty = $this->getRequest()->getParam('difficulty', NULL);
             $count = $this->getRequest()->getParam('count', 1);
 
             switch (strtolower($this->getRequest()->getMethod())) {
@@ -79,7 +79,7 @@ class HomeController extends Zend_Controller_Action {
                     break;
             }
         } else {
-            $output = $model->getIrregularDictionary($book);
+            $output = $model->getIrregularDictionary($book, $difficulty);
 
             $res = [];
             foreach ($output['items'] as $node) {

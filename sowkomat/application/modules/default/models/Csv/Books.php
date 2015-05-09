@@ -85,7 +85,7 @@ class Model_Csv_Books extends Model_Csv {
                 }
                 
                 ksort($data['items']);
-                
+
                 for ($i = 0; $i < $count; $i++) {
                     $data['output'][] = $this->randomize($data, $difficulty, $mixed);
                 }
@@ -101,7 +101,7 @@ class Model_Csv_Books extends Model_Csv {
         return empty($data['output']) ? FALSE : $data['output'];
     }
 
-    public function getIrregularDictionary($book) {
+    public function getIrregularDictionary($book, $difficulty = NULL) {
         try {
             $handle = fopen($this->_path . '/' . $book . '/' . $book . '.csv', 'r');
 
@@ -112,7 +112,13 @@ class Model_Csv_Books extends Model_Csv {
             }
 
             while (($row = fgetcsv($handle, NULL, ';')) !== FALSE && $row[0]) {
-                $data['items'][] = self::convert($row);
+                $temp = self::convert($row);
+                if($difficulty) {
+                    if($temp[3] == $difficulty)
+                        $data['items'][] = self::convert($row);
+                } else {
+                    $data['items'][] = self::convert($row);
+                }
             }
 
             ksort($data['items']);
