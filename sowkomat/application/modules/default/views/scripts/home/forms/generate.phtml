@@ -363,10 +363,8 @@
         var input = $(div).prev("input[disabled]");
 
         if(input[0].hasClass('trueChecked')) {
-            var audio = new Audio('<?php echo "http://$_SERVER[HTTP_HOST]"; ?>/sowkomat/public/asystent/krzyzowka/php/speech.php?ie=UTF-8&q=' + input[0].value + '&tl=' + jsAudioLanguage);
+            var audio = new Audio('<?php echo dirname($_SERVER['SCRIPT_NAME']); ?>/asystent/krzyzowka/php/speech.php?ie=UTF-8&q=' + input[0].value + '&tl=' + jsAudioLanguage);
             audio.play();
-        } else {
-            console.log(123);
         }
 
     }
