@@ -25,6 +25,7 @@
         <?= $this->form; ?>
     </div>
     <div class="dictionary right">
+        <?= $this->render('home/parts/instructions.phtml'); ?>
         <form action="http://www.1a.biz.pl/slownik/szukajskr.php" method="post" encType="multipart/form-data" target="dictionary">
             <fieldset>
                 <legend><?= $this->translate('dictionary'); ?></legend>
@@ -60,6 +61,5 @@
                 <iframe name="dictionary" style="border: none; width: 100%; height: 512px;"></iframe>-->
             </fieldset>
         </form>
-        <?= $this->render('home/parts/instructions.phtml'); ?>
     </div>
 </div>

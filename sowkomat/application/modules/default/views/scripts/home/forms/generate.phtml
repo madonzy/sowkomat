@@ -1,6 +1,8 @@
 <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 <script type="text/javascript">
     var button;
+    var jsAudioLanguage = 'en';
+    var testWasAlreadyChecked = false;
     dojo.require('dijit.form.Form');
     dojo.require('dijit.layout.TabContainer');
     dojo.require('dijit.layout.ContentPane');
@@ -82,6 +84,8 @@
             else if(value == "z angielskiego na polski")
                 dojo.style(dijit.byId('pdfSubmit').domNode, "display", "inline-block");
 
+            jsAudioLanguage = (value == "z polskiego na angielski") ? 'en' : 'pl';
+
         });
 
         var container = new dijit.layout.TabContainer({
@@ -104,6 +108,7 @@
 
     function submit() {
         totalScore = 0;
+        testWasAlreadyChecked = false;
         if (dijit.byId('form').validate() && dojo.query('#units input[type="checkbox"]:checked').length) {
             //alert(dijit.byId('unit').get('value'));
             if(dijit.byId('translation').get('value')=='mieszane')
@@ -186,7 +191,7 @@
                                                           '<strong>' + sample[0][i] + '</strong>' +
                                                       '</td>' +
                                                       '<td>' +
-                                                          '<input type="text" onblur="checkAnswer(this, \'' + sample[1][i] + '\', \'' + sample[2][i] + '\', \'' + sample[3][i] + '\');"/>' +
+                                                          '<div class="outerSpeech"><input type="text" onblur="checkAnswer(this, \'' + sample[1][i] + '\', \'' + sample[2][i] + '\', \'' + sample[3][i] + '\');"/></div>' +
                                                       '</td>' +
                                                   '</tr>';
                                 }
@@ -231,16 +236,16 @@
                         for(var i = 0; i < data.length; ++i) {
                             sprawdzian += '<tr>' +
                             '<td>' +
-                            '<strong>' + data[i][0] + '</strong>' +
+                                '<strong>' + data[i][0] + '</strong>' +
                             '</td>' +
                             '<td>' +
-                            '<input style="width: 100px;" class="' + data[i][0] + '" type="text" onblur="checkIrregularAnswer(this, \'' + data[i][1] + '\');"/>' +
+                                '<div class="outerSpeech"><input style="width: 100px;" class="' + data[i][0] + '" type="text" onblur="checkIrregularAnswer(this, \'' + data[i][1] + '\');"/></div>' +
                             '</td>' +
                             '<td>' +
-                            '<input style="width: 100px;" class="' + data[i][0] + '" type="text" onblur="checkIrregularAnswer(this, \'' + data[i][2] + '\');"/>' +
+                                '<div class="outerSpeech"><input style="width: 100px;" class="' + data[i][0] + '" type="text" onblur="checkIrregularAnswer(this, \'' + data[i][2] + '\');"/></div>' +
                             '</td>' +
                             '<td>' +
-                            '<input style="width: 100px;" class="' + data[i][0] + '" type="text" onblur="checkIrregularAnswer(this, \'' + data[i][3] + '\');"/>' +
+                                '<div class="outerSpeech"><input style="width: 100px;" class="' + data[i][0] + '" type="text" onblur="checkIrregularAnswer(this, \'' + data[i][3] + '\');"/></div>' +
                             '</td>' +
                             '</tr>';
                         }
@@ -291,6 +296,12 @@
         || (input.value == expectedValue3 && input.value != '-')) {
 
             input.setAttribute('class', 'true');
+            if(testWasAlreadyChecked) {
+                $(input).addClass('trueChecked');
+                input.setAttribute('disabled', 'disabled');
+                $('<div onclick="speech(this)" class="innerSpeech"></div>').insertAfter(input);
+            }
+
 //            input.setAttribute('disabled', 'disabled');
             ++totalScore;
         } else {
@@ -305,6 +316,11 @@
         if(input.value == expectedValue) {
 
             input.setAttribute('class', input.getAttribute('class') + ' true');
+            if(testWasAlreadyChecked) {
+                $(input).addClass('trueChecked');
+                input.setAttribute('disabled', 'disabled');
+                $('<div onclick="speech(this)" class="innerSpeech"></div>').insertAfter(input);
+            }
 //            input.setAttribute('disabled', 'disabled');
 
             /*for(var i = 0; i < 3; ++i) {
@@ -325,12 +341,34 @@
         $('input.true').each(function(indx, elem) {
             $(elem).addClass('trueChecked');
             elem.setAttribute('disabled', 'disabled');
-            var totalScoreRext = $('#totalScoreText');
-            var possibleAnswers = isIrregular ? 30 : 10;
-
-            totalScoreRext.text('Total score: ' + totalScore + ' / ' + possibleAnswers);
-            totalScoreRext.show()
+            $('<div onclick="speech(this)" class="innerSpeech"></div>').insertAfter(elem);
         });
+        $('button.checkTestButton').attr('disabled', 'disabled').css({
+            backgroundColor: '#CDCDCD',
+            border: '1px solid #ABABAB',
+            cursor: 'not-allowed'
+        });
+
+        var totalScoreRext = $('#totalScoreText');
+        var possibleAnswers = isIrregular ? 30 : 10;
+
+        totalScoreRext.text('Total score: ' + totalScore + ' / ' + possibleAnswers);
+        totalScoreRext.show();
+
+        testWasAlreadyChecked = true;
+    }
+
+    function speech(div) {
+
+        var input = $(div).prev("input[disabled]");
+
+        if(input[0].hasClass('trueChecked')) {
+            var audio = new Audio('<?php echo "http://$_SERVER[HTTP_HOST]"; ?>/sowkomat/public/asystent/krzyzowka/php/speech.php?ie=UTF-8&q=' + input[0].value + '&tl=' + jsAudioLanguage);
+            audio.play();
+        } else {
+            console.log(123);
+        }
+
     }
 
     Element.prototype.hasClass = function(className) {
@@ -404,6 +442,20 @@
         color: green;
         font-weight: bold;
         border: 2px solid green;
+        background: url(/sowkomat/images/icon_sound.png) no-repeat scroll 97%;
+    }
+
+    .innerSpeech {
+        cursor: pointer;
+        position:absolute;
+        left:0;
+        right:0;
+        top:0;
+        bottom:0;
+    }
+
+    .outerSpeech {
+        position:relative;
     }
 
     .checkTestButton {

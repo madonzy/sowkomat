@@ -294,7 +294,7 @@ function chooseCurr(&$csv, $trsl, $input) {
       	<tr>
       		<td><input type="submit" value="Akceptuj"></td>
       	</tr>
-      	<tr style="<?= $isOk ? '' : 'display: none'; ?>;background-color: #EBF0F7">
+      	<tr style="height: 27px;background-color: #EBF0F7">
       		<td style="text-align: center;">
       			<b style="word-spacing: 1px;font-size: 15px;"><?= $answer; ?></b>
       		</td>
