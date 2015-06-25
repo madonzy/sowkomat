@@ -8,12 +8,12 @@
     <translate id="pdfButton">Pobierz PDF</translate>
     <translate id="workbook">Podręcznik</translate>
     <translate id="translation">Tłumaczenie</translate>
-    <translate id="dictionary">Słownik</translate>
+    <translate id="dictionary">Asystent</translate>
     <translate id="unit">Rozdział</translate>
     <translate id="difficulty">Trudność</translate>
     <translate id="generator">Generator</translate>
     <translate id="output">Wydruk testu</translate>
-    <translate id="data">Wybór testu</translate>
+    <translate id="data">Ustawienia</translate>
     <translate id="mixed">Losowy</translate>
     <translate id="beginner">Łatwy</translate>
     <translate id="intermediate">Trudny</translate>
