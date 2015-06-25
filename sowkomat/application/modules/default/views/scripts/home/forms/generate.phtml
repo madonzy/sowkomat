@@ -184,7 +184,7 @@
                                 });
                                 content += '</ul>';
 
-                                var sprawdzian = '<table class="test testReg"><caption id="totalScoreText" style="display: none;">Total score: 0 / 10</caption>';
+                                var sprawdzian = '<table class="test testReg"><caption id="totalScoreText" style="display: none;">Total score: 0%</caption>';
                                 for(var i = 0; i < sample[0].length; ++i) {
                                     sprawdzian += '<tr>' +
                                                       '<td>' +
@@ -232,7 +232,7 @@
                             container.removeChild(pane);
                         });
 
-                        var sprawdzian = '<form name="sprawdzian"><table class="test"><caption id="totalScoreText">Total score: 0 / 30</caption>';
+                        var sprawdzian = '<form name="sprawdzian"><table class="test"><caption id="totalScoreText">Total score: 0%</caption>';
                         for(var i = 0; i < data.length; ++i) {
                             sprawdzian += '<tr>' +
                             '<td>' +
@@ -352,7 +352,7 @@
         var totalScoreRext = $('#totalScoreText');
         var possibleAnswers = isIrregular ? 30 : 10;
 
-        totalScoreRext.text('Total score: ' + totalScore + ' / ' + possibleAnswers);
+        totalScoreRext.text('Total score: ' + Math.round(((totalScore/possibleAnswers)*100)*100)/100 + '%');
         totalScoreRext.show();
 
         testWasAlreadyChecked = true;
