@@ -45,6 +45,8 @@
 	<script src="js/jquery.crossword.js"></script>
 	<script>
 
+        var jsAudioLanguage = '<?php echo $jsAudioLanguage ?>';
+
 		(function($) {
 			$(function() {
 				// provide crossword entries in an array of objects like the following example
@@ -88,6 +90,63 @@
 			})
 
 		})(jQuery);
+
+        (function($) {
+            $.fn.simpleCheckbox = function(options) {
+                var defaults = {
+                    newElementClass: 'tog',
+                    activeElementClass: 'on'
+                };
+                var options = $.extend(defaults, options);
+                this.each(function() {
+                    //Assign the current checkbox to obj
+                    var obj = $(this);
+                    //Create new element to be styled
+                    var newObj = $('<div/>', {
+                    'id': '#' + obj.attr('id'),
+                        'class': options.newElementClass,
+                        'style': 'display: block;'
+                }).insertAfter(this);
+                //Make sure pre-checked boxes are rendered as checked
+                if(obj.is(':checked')) {
+                    newObj.addClass(options.activeElementClass);
+                }
+                obj.hide(); //Hide original checkbox
+                //Labels can be painful, let's fix that
+                if($('[for=' + obj.attr('id') + ']').length) {
+
+                    var label = $('[for=' + obj.attr('id') + ']');
+                    label.click(function() {
+                        newObj.trigger('click'); //Force the label to fire our element
+                        return false;
+                    });
+                }
+                //Attach a click handler
+                newObj.click(function() {
+                    //Assign current clicked object
+                    var obj = $(this);
+                    //Check the current state of the checkbox
+                    if(obj.hasClass(options.activeElementClass)) {
+                        obj.removeClass(options.activeElementClass);
+                        $(obj.attr('id')).attr('checked',false);
+                    } else {
+                        obj.addClass(options.activeElementClass);
+                        $(obj.attr('id')).attr('checked',true);
+                    }
+                    //Kill the click function
+                    return false;
+                });
+            });
+        };
+        })(jQuery);
+
+        $(document).ready(function(){
+
+// replace checkboxes with Toggles
+            $('input:checkbox').simpleCheckbox();
+
+        });// end document.ready
+        // ]]>
 
 
 	</script>
@@ -194,19 +253,31 @@
 			margin-bottom: 30px;
 		}
 
+        div.tog{border-radius:20px;display:block;box-shadow:inset 0 0 4px rgba(0,0,0,.6);margin:1em auto;height:40px;width:100px;position:relative;cursor:pointer;font:18px/18px arial;background:#ccc;
+            -webkit-transition: all .2s ease;-moz-transition: all .2s ease;-o-transition: all .2s ease;transition: all .2s ease;}
+        div.tog:after{content:'';box-shadow: 0px 2px 2px rgba(0,0,0,.6);border-radius:20px;display:block;height:30px;width:30px;background:#fff;position:absolute;top:5px;left:5px;
+            -webkit-transition: all .2s ease;-moz-transition: all .2s ease;-o-transition: all .2s ease;transition: all .2s ease;}
+        div.tog:before{content:'OFF';position:absolute;right:11px;top:12px;color:#fff;}
+        div.tog:hover:after{left:10px;}
+        div.tog.on:before{content:'ON';right:60px;}
+        div.tog.on{background:#0c0;}
+        div.tog.on:after{left:65px;}
+        div.tog.on:hover:after{left:60px;}
+
 	</style>
 
 </head>
 
 <body>
 
-<div class="info">
-	<h1><?= $bookTitle; ?></h1>
-	<h2>Units: <?= $unitsInStr; ?></h2>
-	<h3><?= $trslFromTo; ?></h3>
-</div>
+    <div class="info">
+        <h1><?= $bookTitle; ?></h1>
+        <h2>Units: <?= $unitsInStr; ?></h2>
+        <h3><?= $trslFromTo; ?></h3>
+        <h2 id="play-sound-checkbox"><label for="toggle1">Play a sound: </label><input id="toggle1" type="checkbox" name="toggle1" /></h2>
+    </div>
 
-<div id="puzzle-wrapper"><!-- crossword puzzle appended here --></div>
+    <div id="puzzle-wrapper"><!-- crossword puzzle appended here --></div>
 
 </body>
 </html>

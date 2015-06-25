@@ -61,10 +61,4 @@ if( isset($_GET['book']) && isset($books[$_GET['book']])) {
 $charset = 'UTF-8';
 
 
-
-
-
-
-
-
-?>
+$jsAudioLanguage = !$isPolishCrossword ? 'pl' : 'en';
