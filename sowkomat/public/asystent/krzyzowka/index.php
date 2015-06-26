@@ -274,7 +274,7 @@
         <h1><?= $bookTitle; ?></h1>
         <h2>Units: <?= $unitsInStr; ?></h2>
         <h3><?= $trslFromTo; ?></h3>
-        <h2 id="play-sound-checkbox"><label for="toggle1">Play a sound: </label><input id="toggle1" type="checkbox" name="toggle1" /></h2>
+        <h2 id="play-sound-checkbox"><label for="toggle1">Sound: </label><input id="toggle1" type="checkbox" name="toggle1" /></h2>
     </div>
 
     <div id="puzzle-wrapper"><!-- crossword puzzle appended here --></div>
