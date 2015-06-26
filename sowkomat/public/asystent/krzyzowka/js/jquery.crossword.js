@@ -321,9 +321,7 @@
 						solvedToggle = true;
 
 						if($('li:not([class="clue-done"])').length - $('li.clues-active').length == 0) {
-							var ask = confirm('Congratulations! Click OK to generate a new crossword or Cancel to stay on the current page!');
-							if(true === ask)
-								location.reload();
+							$('#congrads').show();
 						}
 
 						return;
