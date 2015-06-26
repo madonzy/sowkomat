@@ -1,214 +1,265 @@
-<script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-<script type="text/javascript">
-    var button;
-    var jsAudioLanguage = 'en';
-    var testWasAlreadyChecked = false;
-    dojo.require('dijit.form.Form');
-    dojo.require('dijit.layout.TabContainer');
-    dojo.require('dijit.layout.ContentPane');
-    dojo.require('dijit.form.CheckBox');
+<?php if(isset($_GET['more-details'])) : ?>
+    <?= $this->render('home/parts/more-details.phtml'); ?>
+<?php else : ?>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script type="text/javascript">
+        var button;
+        var jsAudioLanguage = 'en';
+        var testWasAlreadyChecked = false;
+        dojo.require('dijit.form.Form');
+        dojo.require('dijit.layout.TabContainer');
+        dojo.require('dijit.layout.ContentPane');
+        dojo.require('dijit.form.CheckBox');
 
-    var data = <?= $this->element->getResources(); ?>;
-    var totalScore = 0;
+        var data = <?= $this->element->getResources(); ?>;
+        var totalScore = 0;
 
-    function init() {
+        function init() {
 
-        function resolveIrregularVerbs(value) {
-            if(value == 'Czasowniki nieregularne') {
-                document.getElementById('translationtr').setAttribute('style', "display:none");
-                document.getElementById('unitstr').setAttribute('style', "display:none");
+            function resolveIrregularVerbs(value) {
+                if(value == 'Czasowniki nieregularne') {
+                    document.getElementById('translationtr').setAttribute('style', "display:none");
+                    document.getElementById('unitstr').setAttribute('style', "display:none");
 //                document.getElementById('difficultytr').setAttribute('style', "display:none");
-                document.getElementById('crosswordButton').setAttribute('style', "display:none");
-                dojo.style(dijit.byId('pdfSubmit').domNode, "display", "none");
-            } else {
-                document.getElementById('translationtr').removeAttribute('style');
-                document.getElementById('unitstr').removeAttribute('style');
+                    document.getElementById('crosswordButton').setAttribute('style', "display:none");
+                    dojo.style(dijit.byId('pdfSubmit').domNode, "display", "none");
+                } else {
+                    document.getElementById('translationtr').removeAttribute('style');
+                    document.getElementById('unitstr').removeAttribute('style');
 //                document.getElementById('difficultytr').removeAttribute('style');
-                document.getElementById('crosswordButton').removeAttribute('style');
-                dojo.style(dijit.byId('pdfSubmit').domNode, "display", "inline-block");
-            }
-        }
-
-        dojo.connect(dijit.byId('book'), 'onChange', null, function(value) {
-
-            // Resources.
-            dijit.byId('translation').set('value', 0);
-            dijit.byId('translation').removeOption(dijit.byId('translation').getOptions());
-
-            dijit.byId('translation').addOption({label: '&nbsp;', value: 0});
-            dijit.byId('translation').addOption({label: 'mieszane', value: 'mieszane'});
-            for (var key in data[value]) {
-                dijit.byId('translation').addOption({label: key, value: key});
+                    document.getElementById('crosswordButton').removeAttribute('style');
+                    dojo.style(dijit.byId('pdfSubmit').domNode, "display", "inline-block");
+                }
             }
 
-            resolveIrregularVerbs(value);
-        });
+            dojo.connect(dijit.byId('book'), 'onChange', null, function(value) {
 
-        dojo.connect(dijit.byId('translation'), 'onChange', null, function(value) {
-            // Units.
-            /*dijit.byId('unit').set('value', 0);
-             dijit.byId('unit').removeOption(dijit.byId('unit').getOptions());
+                // Resources.
+                dijit.byId('translation').set('value', 0);
+                dijit.byId('translation').removeOption(dijit.byId('translation').getOptions());
 
-             dijit.byId('unit').addOption({label: '&nbsp;', value: 0});*/
-            var units = dojo.byId('units');
-            dojo.forEach(dijit.findWidgets(units), function(widget) {
-                widget.destroyRecursive(true);
-            });
-            dojo.empty(units);
-
-            if (value && typeof data[dijit.byId('book').get('value')] !== 'undefined') {
-                var val = value;
-                if(val == 'mieszane') val = 'z angielskiego na polski'
-
-                dojo.forEach(data[dijit.byId('book').get('value')][val], function(item) {
-                    if(item != '') {
-                        var div = dojo.create('div', {'class': 'left'}, units);
-                        new dijit.form.CheckBox({
-                            'id': 'unit_' + item,
-                            'name': 'unit_' + item
-                        }, dojo.create('div', null, div));
-                        dojo.create('label', {
-                            'for': 'unit_' + item,
-                            'innerHTML': item + (item < 10 ? '  ' : '')
-                        }, div);
-                        //dijit.byId('unit').addOption({label: item, value: item});
-                    }
-                });
-
-            }
-
-            checkUnits();
-            //alert(value);
-            if(value == "z polskiego na angielski" || value == "mieszane")
-                dojo.style(dijit.byId('pdfSubmit').domNode, "display", "none");
-            else if(value == "z angielskiego na polski")
-                dojo.style(dijit.byId('pdfSubmit').domNode, "display", "inline-block");
-
-            jsAudioLanguage = (value == "z polskiego na angielski") ? 'en' : 'pl';
-
-        });
-
-        var container = new dijit.layout.TabContainer({
-            'style': 'width: ' + dojo.style(dojo.byId('container'), 'width') + 'px; height: 470px;'
-        }, 'container');
-
-        container.addChild(new dijit.layout.ContentPane({
-            'title': '<?= $this->translate('test'); ?>',// + ' # ' + index + 1,
-            'content': ''
-        }));
-
-        container.startup();
-    }
-
-    function checkUnits() {
-        if (!dojo.query('#units input[type="checkbox"]').length) {
-            dojo.create('i', {'innerHTML': '(<?= $this->translate('none'); ?>)'}, dojo.byId('units'));
-        }
-    }
-
-    function submit() {
-        totalScore = 0;
-        testWasAlreadyChecked = false;
-        if (dijit.byId('form').validate() && dojo.query('#units input[type="checkbox"]:checked').length) {
-            //alert(dijit.byId('unit').get('value'));
-            if(dijit.byId('translation').get('value')=='mieszane')
-            {
-
-                if(dojo.query('#units input[type="checkbox"]:checked').length <2)
-                {
-                    alert('Dla trybu tłumaczenia: "mieszane" należy zaznaczyć minimum 2 rozdziały');
-                    return false;
+                dijit.byId('translation').addOption({label: '&nbsp;', value: 0});
+                dijit.byId('translation').addOption({label: 'mieszane', value: 'mieszane'});
+                for (var key in data[value]) {
+                    dijit.byId('translation').addOption({label: key, value: key});
                 }
 
-            }
-            if (false) {//dijit.byId('output').get('value')) {
-                // Document.
-                window.open(parseURIparams('<?= $this->url(['module' => 'default', 'controller' => 'home', 'action' => 'generate'], NULL, TRUE); ?>', {
-                    'book': dijit.byId('book').get('value'),
-                    'translation': dijit.byId('translation').get('value'),
-                    'unit': dijit.byId('unit').get('value'),
-                    'difficiult': dijit.byId('difficulty').get('value')//,
-                    //'count': dijit.byId('count').get('value')
-                }, true));
-            } else {
-                // Samples.
-                if(button == "pdf") {
-                    dojo.byId('form').action = '<?= $this->url(['module' => 'default', 'controller' => 'home', 'action' => 'pdf'], NULL, TRUE); ?>';
+                resolveIrregularVerbs(value);
+            });
 
-                    return true;
+            dojo.connect(dijit.byId('translation'), 'onChange', null, function(value) {
+                // Units.
+                /*dijit.byId('unit').set('value', 0);
+                 dijit.byId('unit').removeOption(dijit.byId('unit').getOptions());
+
+                 dijit.byId('unit').addOption({label: '&nbsp;', value: 0});*/
+                var units = dojo.byId('units');
+                dojo.forEach(dijit.findWidgets(units), function(widget) {
+                    widget.destroyRecursive(true);
+                });
+                dojo.empty(units);
+
+                if (value && typeof data[dijit.byId('book').get('value')] !== 'undefined') {
+                    var val = value;
+                    if(val == 'mieszane') val = 'z angielskiego na polski'
+
+                    dojo.forEach(data[dijit.byId('book').get('value')][val], function(item) {
+                        if(item != '') {
+                            var div = dojo.create('div', {'class': 'left'}, units);
+                            new dijit.form.CheckBox({
+                                'id': 'unit_' + item,
+                                'name': 'unit_' + item
+                            }, dojo.create('div', null, div));
+                            dojo.create('label', {
+                                'for': 'unit_' + item,
+                                'innerHTML': item + (item < 10 ? '  ' : '')
+                            }, div);
+                            //dijit.byId('unit').addOption({label: item, value: item});
+                        }
+                    });
+
+                }
+
+                checkUnits();
+                //alert(value);
+                if(value == "z polskiego na angielski" || value == "mieszane")
+                    dojo.style(dijit.byId('pdfSubmit').domNode, "display", "none");
+                else if(value == "z angielskiego na polski")
+                    dojo.style(dijit.byId('pdfSubmit').domNode, "display", "inline-block");
+
+                jsAudioLanguage = (value == "z polskiego na angielski" || value == "tylko angielski") ? 'en' : 'pl';
+
+            });
+
+            var container = new dijit.layout.TabContainer({
+                'style': 'width: ' + dojo.style(dojo.byId('container'), 'width') + 'px; height: 470px;'
+            }, 'container');
+
+            container.addChild(new dijit.layout.ContentPane({
+                'title': '<?= $this->translate('test'); ?>',// + ' # ' + index + 1,
+                'content': ''
+            }));
+
+            container.startup();
+        }
+
+        function checkUnits() {
+            if (!dojo.query('#units input[type="checkbox"]').length) {
+                dojo.create('i', {'innerHTML': '(<?= $this->translate('none'); ?>)'}, dojo.byId('units'));
+            }
+        }
+
+        function submit() {
+            totalScore = 0;
+            testWasAlreadyChecked = false;
+            if (dijit.byId('form').validate() && dojo.query('#units input[type="checkbox"]:checked').length) {
+                //alert(dijit.byId('unit').get('value'));
+                if(dijit.byId('translation').get('value')=='mieszane')
+                {
+
+                    if(dojo.query('#units input[type="checkbox"]:checked').length <2)
+                    {
+                        alert('Dla trybu tłumaczenia: "mieszane" należy zaznaczyć minimum 2 rozdziały');
+                        return false;
+                    }
+
+                }
+                if (false) {//dijit.byId('output').get('value')) {
+                    // Document.
+                    window.open(parseURIparams('<?= $this->url(['module' => 'default', 'controller' => 'home', 'action' => 'generate'], NULL, TRUE); ?>', {
+                        'book': dijit.byId('book').get('value'),
+                        'translation': dijit.byId('translation').get('value'),
+                        'unit': dijit.byId('unit').get('value'),
+                        'difficiult': dijit.byId('difficulty').get('value')//,
+                        //'count': dijit.byId('count').get('value')
+                    }, true));
                 } else {
+                    // Samples.
+                    if(button == "pdf") {
+                        dojo.byId('form').action = '<?= $this->url(['module' => 'default', 'controller' => 'home', 'action' => 'pdf'], NULL, TRUE); ?>';
+
+                        return true;
+                    } else {
+                        dojo.xhrPost({
+                            form: dojo.byId('form'),
+                            handleAs: 'json',
+                            load: function(data) {
+                                var container = dijit.byId('container');
+                                //                        if (!container) {
+                                //                            container = new dijit.layout.TabContainer({
+                                //                                'style': 'width: ' + dojo.style(dojo.byId('container'), 'width') + 'px; height: 420px;'
+                                //                            }, 'container');
+                                //                        } else {
+                                dojo.forEach(container.getChildren(), function(pane) {
+                                    container.removeChild(pane);
+                                });
+                                //                        }
+                                if(dijit.byId('translation').get('value')=='mieszane')
+                                {
+                                    dojo.forEach(data, function(sample, index) {
+                                        var content = '<ol>';
+                                        for(var i = 0; i < sample.length / 2; ++i) {
+                                            content += '<li><span>' + sample[i] + '</span></li>';
+                                        }
+                                        content += '</ol>';
+                                        container.addChild(new dijit.layout.ContentPane({
+                                            'title': 'Lista ang → pol',// + ' # ' + index + 1,
+                                            'content': content
+                                        }));
+                                        content = '<ol>';
+                                        for(var i = sample.length / 2; i < sample.length; ++i) {
+                                            content += '<li><span>' + sample[i] + '</span></li>';
+                                        }
+                                        content += '</ol>';
+                                        container.addChild(new dijit.layout.ContentPane({
+                                            'title': 'Lista pol → ang',// + ' # ' + index + 1,
+                                            'content': content
+                                        }));
+                                    });
+                                }
+                                else
+                                {
+                                    dojo.forEach(data, function(sample, index) {
+                                        // Content
+                                        var content = '<ol>';
+                                        dojo.forEach(sample[0], function(item) {
+                                            content += '<li><span>' + item + '</span></li>';
+                                        });
+                                        content += '</ol>';
+
+                                        var sprawdzian = '<table class="test testReg"><caption id="totalScoreText" style="display: none;">Wynik: 0%</caption>';
+                                        for(var i = 0; i < sample[0].length; ++i) {
+                                            sprawdzian += '<tr>' +
+                                            '<td>' +
+                                            '<strong>' + sample[0][i] + '</strong>' +
+                                            '</td>' +
+                                            '<td>' +
+                                            '<div class="outerSpeech"><input type="text" onblur="checkAnswer(this, \'' + sample[1][i] + '\', \'' + sample[2][i] + '\', \'' + sample[3][i] + '\');"/></div>' +
+                                            '</td>' +
+                                            '</tr>';
+                                        }
+                                        sprawdzian += '<tr><td colspan="4"><button onclick="checkTest(false); return false;" class="checkTestButton">Sprawdź</button></td></tr></table>';
+
+
+                                        container.addChild(new dijit.layout.ContentPane({
+                                            'title': 'Lista',// + ' # ' + index + 1,
+                                            'content': content
+                                        }));
+                                        container.addChild(new dijit.layout.ContentPane({
+                                            'title': 'Sprawdzian',// + ' # ' + index + 1,
+                                            'content': sprawdzian
+                                        }));
+                                    });
+
+                                }
+                                //container.startup();
+                                dojo.style(dojo.byId('samples'), 'visibility', 'visible');
+                            },
+                            error: function(error) {
+                                //alert('Something went wrong! ;(');
+                                alert(error);
+                            }
+                        });
+                    }
+
+                }
+            } else {
+                if(dijit.byId('book').value == 'Czasowniki nieregularne') {
                     dojo.xhrPost({
                         form: dojo.byId('form'),
                         handleAs: 'json',
                         load: function(data) {
+
                             var container = dijit.byId('container');
-    //                        if (!container) {
-    //                            container = new dijit.layout.TabContainer({
-    //                                'style': 'width: ' + dojo.style(dojo.byId('container'), 'width') + 'px; height: 420px;'
-    //                            }, 'container');
-    //                        } else {
-                                dojo.forEach(container.getChildren(), function(pane) {
-                                    container.removeChild(pane);
-                                });
-    //                        }
-                            if(dijit.byId('translation').get('value')=='mieszane')
-                            {
-                                dojo.forEach(data, function(sample, index) {
-                                    var content = '<ul>';
-                                    for(var i = 0; i < sample.length / 2; ++i) {
-                                        content += '<li><span>' + sample[i] + '</span></li>';
-                                    }
-                                    content += '</ul>';
-                                    container.addChild(new dijit.layout.ContentPane({
-                                        'title': 'Lista ang → pol',// + ' # ' + index + 1,
-                                        'content': content
-                                    }));
-                                    content = '<ul>';
-                                    for(var i = sample.length / 2; i < sample.length; ++i) {
-                                        content += '<li><span>' + sample[i] + '</span></li>';
-                                    }
-                                    content += '</ul>';
-                                    container.addChild(new dijit.layout.ContentPane({
-                                        'title': 'Lista pol → ang',// + ' # ' + index + 1,
-                                        'content': content
-                                    }));
-                                });
-                            }
-                            else
-                            {
-                            dojo.forEach(data, function(sample, index) {
-                                // Content
-                                var content = '<ul>';
-                                dojo.forEach(sample[0], function(item) {
-                                    content += '<li><span>' + item + '</span></li>';
-                                });
-                                content += '</ul>';
-
-                                var sprawdzian = '<table class="test testReg"><caption id="totalScoreText" style="display: none;">Total score: 0%</caption>';
-                                for(var i = 0; i < sample[0].length; ++i) {
-                                    sprawdzian += '<tr>' +
-                                                      '<td>' +
-                                                          '<strong>' + sample[0][i] + '</strong>' +
-                                                      '</td>' +
-                                                      '<td>' +
-                                                          '<div class="outerSpeech"><input type="text" onblur="checkAnswer(this, \'' + sample[1][i] + '\', \'' + sample[2][i] + '\', \'' + sample[3][i] + '\');"/></div>' +
-                                                      '</td>' +
-                                                  '</tr>';
-                                }
-                                sprawdzian += '<tr><td colspan="4"><button onclick="checkTest(false); return false;" class="checkTestButton">Sprawdź</button></td></tr></table>';
-
-
-                                container.addChild(new dijit.layout.ContentPane({
-                                    'title': 'Lista',// + ' # ' + index + 1,
-                                    'content': content
-                                }));
-                                container.addChild(new dijit.layout.ContentPane({
-                                    'title': 'Sprawdzian',// + ' # ' + index + 1,
-                                    'content': sprawdzian
-                                }));
+                            dojo.forEach(container.getChildren(), function(pane) {
+                                container.removeChild(pane);
                             });
 
+                            var sprawdzian = '<form name="sprawdzian"><table class="test"><caption id="totalScoreText">Wynik: 0%</caption>';
+                            for(var i = 0; i < data.length; ++i) {
+                                sprawdzian += '<tr>' +
+                                '<td>' +
+                                '<strong>' + data[i][0] + '</strong>' +
+                                '</td>' +
+                                '<td>' +
+                                '<div class="outerSpeech"><input style="width: 100px;" class="' + data[i][0] + '" type="text" onblur="checkIrregularAnswer(this, \'' + data[i][1] + '\');"/></div>' +
+                                '</td>' +
+                                '<td>' +
+                                '<div class="outerSpeech"><input style="width: 100px;" class="' + data[i][0] + '" type="text" onblur="checkIrregularAnswer(this, \'' + data[i][2] + '\');"/></div>' +
+                                '</td>' +
+                                '<td>' +
+                                '<div class="outerSpeech"><input style="width: 100px;" class="' + data[i][0] + '" type="text" onblur="checkIrregularAnswer(this, \'' + data[i][3] + '\');"/></div>' +
+                                '</td>' +
+                                '</tr>';
                             }
+                            sprawdzian += '<tr><td colspan="4"><button onclick="checkTest(true); return false;" class="checkTestButton" style="width: 99%;">Sprawdź</button></td></tr></table></form>';
+
+                            container.addChild(new dijit.layout.ContentPane({
+                                'title': 'Sprawdzian',// + ' # ' + index + 1,
+                                'content': sprawdzian
+                            }));
+
+
                             //container.startup();
                             dojo.style(dojo.byId('samples'), 'visibility', 'visible');
                         },
@@ -217,340 +268,292 @@
                             alert(error);
                         }
                     });
+                } else {
+                    alert('<?= $this->translate('invalidForm'); ?>');
+                }
+            }
+
+            return false;
+        }
+
+        dojo.ready(function() {
+            dojo.connect(dojo.byId('refresh'), 'onclick', null, function(evt) {
+                //refresh
+                location.reload();
+            });
+            init();
+
+            checkUnits();
+
+            dojo.connect(dojo.query("input[name=pdfSubmit]")[0], "onclick", function(evt){
+                button = "pdf";
+            });
+            dojo.connect(dojo.query("input[name=submit]")[0], "onclick", function(evt){
+                button = "submit";
+            });
+        });
+
+        function checkAnswer(input, expectedValue1, expectedValue2, expectedValue3) {
+            if(input.value == expectedValue1
+                || (input.value == expectedValue2 && input.value != '-')
+                || (input.value == expectedValue3 && input.value != '-')) {
+
+                input.setAttribute('class', 'true');
+                if(testWasAlreadyChecked) {
+                    $(input).addClass('trueChecked');
+                    input.setAttribute('disabled', 'disabled');
+                    $('<div onclick="speech(this)" class="innerSpeech"></div>').insertAfter(input);
                 }
 
-            }
-        } else {
-            if(dijit.byId('book').value == 'Czasowniki nieregularne') {
-                dojo.xhrPost({
-                    form: dojo.byId('form'),
-                    handleAs: 'json',
-                    load: function(data) {
-
-                        var container = dijit.byId('container');
-                        dojo.forEach(container.getChildren(), function(pane) {
-                            container.removeChild(pane);
-                        });
-
-                        var sprawdzian = '<form name="sprawdzian"><table class="test"><caption id="totalScoreText">Total score: 0%</caption>';
-                        for(var i = 0; i < data.length; ++i) {
-                            sprawdzian += '<tr>' +
-                            '<td>' +
-                                '<strong>' + data[i][0] + '</strong>' +
-                            '</td>' +
-                            '<td>' +
-                                '<div class="outerSpeech"><input style="width: 100px;" class="' + data[i][0] + '" type="text" onblur="checkIrregularAnswer(this, \'' + data[i][1] + '\');"/></div>' +
-                            '</td>' +
-                            '<td>' +
-                                '<div class="outerSpeech"><input style="width: 100px;" class="' + data[i][0] + '" type="text" onblur="checkIrregularAnswer(this, \'' + data[i][2] + '\');"/></div>' +
-                            '</td>' +
-                            '<td>' +
-                                '<div class="outerSpeech"><input style="width: 100px;" class="' + data[i][0] + '" type="text" onblur="checkIrregularAnswer(this, \'' + data[i][3] + '\');"/></div>' +
-                            '</td>' +
-                            '</tr>';
-                        }
-                        sprawdzian += '<tr><td colspan="4"><button onclick="checkTest(true); return false;" class="checkTestButton" style="width: 99%;">Sprawdź</button></td></tr></table></form>';
-
-                        container.addChild(new dijit.layout.ContentPane({
-                            'title': 'Sprawdzian',// + ' # ' + index + 1,
-                            'content': sprawdzian
-                        }));
-
-
-                        //container.startup();
-                        dojo.style(dojo.byId('samples'), 'visibility', 'visible');
-                    },
-                    error: function(error) {
-                        //alert('Something went wrong! ;(');
-                        alert(error);
-                    }
-                });
+//            input.setAttribute('disabled', 'disabled');
+                ++totalScore;
             } else {
-                alert('<?= $this->translate('invalidForm'); ?>');
+                if($(input).hasClass('true')) {
+                    $(input).removeClass('true');
+                    --totalScore;
+                }
             }
         }
 
-        return false;
-    }
+        function checkIrregularAnswer(input, expectedValue, index) {
+            if(input.value == expectedValue) {
 
-    dojo.ready(function() {
-        dojo.connect(dojo.byId('refresh'), 'onclick', null, function(evt) {
-            //refresh
-            location.reload();
-        });
-        init();
-
-        checkUnits();
-
-        dojo.connect(dojo.query("input[name=pdfSubmit]")[0], "onclick", function(evt){
-            button = "pdf";
-        });
-        dojo.connect(dojo.query("input[name=submit]")[0], "onclick", function(evt){
-            button = "submit";
-        });
-    });
-
-    function checkAnswer(input, expectedValue1, expectedValue2, expectedValue3) {
-        if(input.value == expectedValue1
-        || (input.value == expectedValue2 && input.value != '-')
-        || (input.value == expectedValue3 && input.value != '-')) {
-
-            input.setAttribute('class', 'true');
-            if(testWasAlreadyChecked) {
-                $(input).addClass('trueChecked');
-                input.setAttribute('disabled', 'disabled');
-                $('<div onclick="speech(this)" class="innerSpeech"></div>').insertAfter(input);
-            }
-
-//            input.setAttribute('disabled', 'disabled');
-            ++totalScore;
-        } else {
-            if($(input).hasClass('true')) {
-                $(input).removeClass('true');
-                --totalScore;
-            }
-        }
-    }
-
-    function checkIrregularAnswer(input, expectedValue, index) {
-        if(input.value == expectedValue) {
-
-            input.setAttribute('class', input.getAttribute('class') + ' true');
-            if(testWasAlreadyChecked) {
-                $(input).addClass('trueChecked');
-                input.setAttribute('disabled', 'disabled');
-                $('<div onclick="speech(this)" class="innerSpeech"></div>').insertAfter(input);
-            }
+                input.setAttribute('class', input.getAttribute('class') + ' true');
+                if(testWasAlreadyChecked) {
+                    $(input).addClass('trueChecked');
+                    input.setAttribute('disabled', 'disabled');
+                    $('<div onclick="speech(this)" class="innerSpeech"></div>').insertAfter(input);
+                }
 //            input.setAttribute('disabled', 'disabled');
 
-            /*for(var i = 0; i < 3; ++i) {
-                if(!friends[i].hasClass('true'))
-                    return false;
-            }*/
+                /*for(var i = 0; i < 3; ++i) {
+                 if(!friends[i].hasClass('true'))
+                 return false;
+                 }*/
 
-            ++totalScore;
-        } else {
-            if($(input).hasClass('true')) {
-                $(input).removeClass('true');
-                --totalScore;
+                ++totalScore;
+            } else {
+                if($(input).hasClass('true')) {
+                    $(input).removeClass('true');
+                    --totalScore;
+                }
             }
         }
-    }
 
-    function checkTest(isIrregular) {
-        $('input.true').each(function(indx, elem) {
-            $(elem).addClass('trueChecked');
-            elem.setAttribute('disabled', 'disabled');
-            $('<div onclick="speech(this)" class="innerSpeech"></div>').insertAfter(elem);
-        });
-        $('button.checkTestButton').attr('disabled', 'disabled').css({
-            backgroundColor: '#CDCDCD',
-            border: '1px solid #ABABAB',
-            cursor: 'not-allowed'
-        });
+        function checkTest(isIrregular) {
+            $('input.true').each(function(indx, elem) {
+                $(elem).addClass('trueChecked');
+                elem.setAttribute('disabled', 'disabled');
+                $('<div onclick="speech(this)" class="innerSpeech"></div>').insertAfter(elem);
+            });
+            $('button.checkTestButton').attr('disabled', 'disabled').css({
+                backgroundColor: '#CDCDCD',
+                border: '1px solid #ABABAB',
+                cursor: 'not-allowed'
+            });
 
-        var totalScoreRext = $('#totalScoreText');
-        var possibleAnswers = isIrregular ? 30 : 10;
+            var totalScoreRext = $('#totalScoreText');
+            var possibleAnswers = isIrregular ? 30 : 10;
 
-        totalScoreRext.text('Total score: ' + Math.round(((totalScore/possibleAnswers)*100)*100)/100 + '%');
-        totalScoreRext.show();
+            totalScoreRext.text('Wynik: ' + Math.round(((totalScore/possibleAnswers)*100)*100)/100 + '%');
+            totalScoreRext.show();
 
-        testWasAlreadyChecked = true;
-    }
-
-    function speech(div) {
-
-        var input = $(div).prev("input[disabled]");
-
-        if(input[0].hasClass('trueChecked')) {
-            var audio = new Audio('<?php echo dirname($_SERVER['SCRIPT_NAME']); ?>/asystent/krzyzowka/php/speech.php?ie=UTF-8&q=' + input[0].value + '&tl=' + jsAudioLanguage);
-            audio.play();
+            testWasAlreadyChecked = true;
         }
 
-    }
+        function speech(div) {
 
-    Element.prototype.hasClass = function(className) {
-        return this.className && new RegExp("(^|\\s)" + className + "(\\s|$)").test(this.className);
-    };
+            var input = $(div).prev("input[disabled]");
 
-</script>
+            if(input[0].hasClass('trueChecked')) {
+                var audio = new Audio('<?php echo dirname($_SERVER['SCRIPT_NAME']); ?>/asystent/krzyzowka/php/speech.php?ie=UTF-8&q=' + input[0].value + '&tl=' + jsAudioLanguage);
+                audio.play();
+            }
 
-<style type="text/css">
-    #form .field .inner {
-        width: 354px;
-    }
+        }
 
-    #samples {
-        /*visibility: hidden;*/
-        margin: 0 10px;
-    }
+        Element.prototype.hasClass = function(className) {
+            return this.className && new RegExp("(^|\\s)" + className + "(\\s|$)").test(this.className);
+        };
 
-    #samples #container ul {
-        margin: 0 25px;
-        padding: 0;
-    }
+    </script>
 
-    #samples #container ul li {
-        color: #777;
-        padding: 5px 10px;
-        font-size: 15px;
-    }
+    <style type="text/css">
+        #form .field .inner {
+            width: 354px;
+        }
 
-    #samples #container ul li span {
-        color: #000;
-        font-weight: bold;
-        letter-spacing: 1px;
-    }
+        #samples {
+            /*visibility: hidden;*/
+            margin: 0 10px;
+        }
 
-    #units {
-        width: 227px;
-        min-height: 17px;
-        text-align: left;
-    }
+        #samples #container ol {
+            margin: 0 25px;
+            padding: 0;
+        }
 
-    #units label {
-        padding-left: 2px;
-    }
+        #samples #container ol li {
+            color: #777;
+            padding: 5px 10px;
+            font-size: 15px;
+        }
 
-    #units i {
-        color: #999;
-    }
+        #samples #container ol li span {
+            color: #000;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
 
-    table.test {
-        width: 100%;
-        padding-left: 20px;
-    }
+        #units {
+            width: 227px;
+            min-height: 17px;
+            text-align: left;
+        }
 
-    table.testReg {
-        width: 100%;
-        padding-left: 65px;
-    }
+        #units label {
+            padding-left: 2px;
+        }
 
-    table.test caption {
-        text-align: center;
-        font-size: 20pt;
-        padding-bottom: 10px;
-    }
+        #units i {
+            color: #999;
+        }
 
-    table.test input {
-        padding: 5px;
-    }
+        table.test {
+            width: 100%;
+            padding-left: 20px;
+        }
 
-    table.test input.trueChecked {
-        color: green;
-        font-weight: bold;
-        border: 2px solid green;
-        background: url(/sowkomat/images/icon_sound.png) no-repeat scroll 97%;
-    }
+        table.testReg {
+            width: 100%;
+            padding-left: 65px;
+        }
 
-    .innerSpeech {
-        cursor: pointer;
-        position:absolute;
-        left:0;
-        right:0;
-        top:0;
-        bottom:0;
-    }
+        table.test caption {
+            text-align: center;
+            font-size: 16pt;
+            padding-bottom: 10px;
+        }
 
-    .outerSpeech {
-        position:relative;
-    }
+        table.test input {
+            padding: 5px;
+        }
 
-    .checkTestButton {
-        width: 100%;
-        height: 130%;
-        border: 1px solid #759dc0;
-        padding: 2px 4px 4px 4px;
-        color: #000000;
-        margin-top: 10px;
-        -moz-border-radius: 4px;
-        border-radius: 4px;
-        -webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, 0.15);
-        -moz-box-shadow: 0 1px 1px rgba(0, 0, 0, 0.15);
-        box-shadow: 0 1px 1px rgba(0, 0, 0, 0.15);
-        background-color: #bcd8f4;
-        background-repeat: repeat-x;
-        background-image: -moz-linear-gradient(#ffffff 0px, rgba(255, 255, 255, 0) 3px, rgba(255, 255, 255, 0.75) 100%);
-        background-image: -webkit-linear-gradient(#ffffff 0px, rgba(255, 255, 255, 0) 3px, rgba(255, 255, 255, 0.75) 100%);
-        background-image: -o-linear-gradient(#ffffff 0px, rgba(255, 255, 255, 0) 3px, rgba(255, 255, 255, 0.75) 100%);
-        background-image: linear-gradient(#ffffff 0px, rgba(255, 255, 255, 0) 3px, rgba(255, 255, 255, 0.75) 100%);
-        _background-image: none;
-        cursor: pointer;
-        font-weight: bold;
-    }
+        table.test input.trueChecked {
+            color: green;
+            font-weight: bold;
+            border: 2px solid green;
+            background: url(/sowkomat/images/icon_sound.png) no-repeat scroll 97%;
+        }
 
-    table.testReg tr td:first-child {
-        padding-right: 50px;
-    }
+        .innerSpeech {
+            cursor: pointer;
+            position:absolute;
+            left:0;
+            right:0;
+            top:0;
+            bottom:0;
+        }
 
-</style>
+        .outerSpeech {
+            position:relative;
+        }
 
-<form id="form" name="form" data-dojo-type="dijit.form.Form" encType="multipart/form-data" onSubmit="javascript: return submit();" name="<?= $this->element->getName(); ?>" method="<?= $this->element->getMethod(); ?>" action="<?= $this->element->getAction(); ?>">
-    <fieldset>
-        <legend><?= $this->translate('data'); ?></legend>
-        <table>
-            <tr>
-                <td class="label"><label for="book"><?= $this->element->getElement('book')->getLabel(); ?>:</label></td>
-                <td class="field">
-                    <?= $this->{$this->element->getElement('book')->helper}(
-                    $this->element->getElement('book')->getName(),
-                    $this->element->getElement('book')->getValue(),
-                    $this->element->getElementParams('book'),
-                    $this->element->getElementAttribs('book'),
-                    $this->element->getElement('book')->getMultiOptions()); ?>
-                    <?= $this->element->renderErrors($this->element->getElement('book')); ?>
-                </td>
-            </tr>
-            <tr id="translationtr">
-                <td class="label"><label for="resource"><?= $this->element->getElement('translation')->getLabel(); ?>:</label></td>
-                <td class="field">
-                    <?= $this->{$this->element->getElement('translation')->helper}(
-                    $this->element->getElement('translation')->getName(),
-                    $this->element->getElement('translation')->getValue(),
-                    $this->element->getElementParams('translation'),
-                    $this->element->getElementAttribs('translation'),
-                    $this->element->getElement('translation')->getMultiOptions()); ?>
-                    <?= $this->element->renderErrors($this->element->getElement('translation')); ?>
-                </td>
-            </tr>
-            <tr id="unitstr">
-                <td class="label"><label for="unit"><?= $this->element->getElement('unit')->getLabel(); ?>:</label></td>
-                <td class="field">
-                    <div class="clear">
-                        <div class="clear right" id="units"></div>
-                    </div>
-                </td>
-            </tr>
-            <tr id="difficultytr">
-                <td class="label"><label for="difficulty"><?= $this->element->getElement('difficulty')->getLabel(); ?>:</label></td>
-                <td class="field">
-                    <?= $this->{$this->element->getElement('difficulty')->helper}(
-                    $this->element->getElement('difficulty')->getName(),
-                    $this->element->getElement('difficulty')->getValue(),
-                    $this->element->getElementParams('difficulty'),
-                    $this->element->getElementAttribs('difficulty'),
-                    $this->element->getElement('difficulty')->getMultiOptions()); ?>
-                    <?= $this->element->renderErrors($this->element->getElement('difficulty')); ?>
-                </td>
-            </tr>
-            <tr>
-                <td class="controls" colspan="2">
-                    </span>
+        .checkTestButton {
+            width: 100%;
+            height: 130%;
+            border: 1px solid #759dc0;
+            padding: 2px 4px 4px 4px;
+            color: #000000;
+            margin-top: 10px;
+            -moz-border-radius: 4px;
+            border-radius: 4px;
+            -webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, 0.15);
+            -moz-box-shadow: 0 1px 1px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 1px 1px rgba(0, 0, 0, 0.15);
+            background-color: #bcd8f4;
+            background-repeat: repeat-x;
+            background-image: -moz-linear-gradient(#ffffff 0px, rgba(255, 255, 255, 0) 3px, rgba(255, 255, 255, 0.75) 100%);
+            background-image: -webkit-linear-gradient(#ffffff 0px, rgba(255, 255, 255, 0) 3px, rgba(255, 255, 255, 0.75) 100%);
+            background-image: -o-linear-gradient(#ffffff 0px, rgba(255, 255, 255, 0) 3px, rgba(255, 255, 255, 0.75) 100%);
+            background-image: linear-gradient(#ffffff 0px, rgba(255, 255, 255, 0) 3px, rgba(255, 255, 255, 0.75) 100%);
+            _background-image: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
 
-                    <?= $this->{$this->element->getElement('submit')->helper}(
-                    $this->element->getElement('submit')->getName(),
-                    $this->element->getElement('submit')->getLabel(),
-                    $this->element->getElementParams('submit'),
-                    $this->element->getElementAttribs('submit')); ?>
-                    <?= $this->{$this->element->getElement('pdfSubmit')->helper}(
-                    $this->element->getElement('pdfSubmit')->getName(),
-                    $this->element->getElement('pdfSubmit')->getLabel(),
-                    $this->element->getElementParams('pdfSubmit'),
-                    $this->element->getElementAttribs('pdfSubmit')); ?>
+        table.testReg tr td:first-child {
+            padding-right: 50px;
+        }
+
+    </style>
+
+    <form id="form" name="form" data-dojo-type="dijit.form.Form" encType="multipart/form-data" onSubmit="javascript: return submit();" name="<?= $this->element->getName(); ?>" method="<?= $this->element->getMethod(); ?>" action="<?= $this->element->getAction(); ?>">
+        <fieldset>
+            <legend><?= $this->translate('data'); ?></legend>
+            <table>
+                <tr>
+                    <td class="label"><label for="book"><?= $this->element->getElement('book')->getLabel(); ?>:</label></td>
+                    <td class="field">
+                        <?= $this->{$this->element->getElement('book')->helper}(
+                            $this->element->getElement('book')->getName(),
+                            $this->element->getElement('book')->getValue(),
+                            $this->element->getElementParams('book'),
+                            $this->element->getElementAttribs('book'),
+                            $this->element->getElement('book')->getMultiOptions()); ?>
+                        <?= $this->element->renderErrors($this->element->getElement('book')); ?>
+                    </td>
+                </tr>
+                <tr id="translationtr">
+                    <td class="label"><label for="resource"><?= $this->element->getElement('translation')->getLabel(); ?>:</label></td>
+                    <td class="field">
+                        <?= $this->{$this->element->getElement('translation')->helper}(
+                            $this->element->getElement('translation')->getName(),
+                            $this->element->getElement('translation')->getValue(),
+                            $this->element->getElementParams('translation'),
+                            $this->element->getElementAttribs('translation'),
+                            $this->element->getElement('translation')->getMultiOptions()); ?>
+                        <?= $this->element->renderErrors($this->element->getElement('translation')); ?>
+                    </td>
+                </tr>
+                <tr id="unitstr">
+                    <td class="label"><label for="unit"><?= $this->element->getElement('unit')->getLabel(); ?>:</label></td>
+                    <td class="field">
+                        <div class="clear">
+                            <div class="clear right" id="units"></div>
+                        </div>
+                    </td>
+                </tr>
+                <tr id="difficultytr">
+                    <td class="label"><label for="difficulty"><?= $this->element->getElement('difficulty')->getLabel(); ?>:</label></td>
+                    <td class="field">
+                        <?= $this->{$this->element->getElement('difficulty')->helper}(
+                            $this->element->getElement('difficulty')->getName(),
+                            $this->element->getElement('difficulty')->getValue(),
+                            $this->element->getElementParams('difficulty'),
+                            $this->element->getElementAttribs('difficulty'),
+                            $this->element->getElement('difficulty')->getMultiOptions()); ?>
+                        <?= $this->element->renderErrors($this->element->getElement('difficulty')); ?>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="controls" colspan="2">
+                        </span>
+
+                        <?= $this->{$this->element->getElement('submit')->helper}(
+                            $this->element->getElement('submit')->getName(),
+                            $this->element->getElement('submit')->getLabel(),
+                            $this->element->getElementParams('submit'),
+                            $this->element->getElementAttribs('submit')); ?>
+                        <?= $this->{$this->element->getElement('pdfSubmit')->helper}(
+                            $this->element->getElement('pdfSubmit')->getName(),
+                            $this->element->getElement('pdfSubmit')->getLabel(),
+                            $this->element->getElementParams('pdfSubmit'),
+                            $this->element->getElementAttribs('pdfSubmit')); ?>
 
 
 
-                    <span  class="dijit dijitReset dijitInline action dijitButton" >
+                        <span  class="dijit dijitReset dijitInline action dijitButton" >
                         <span id="crosswordButton" onclick="openCrossword()" class="dijitReset dijitInline dijitButtonNode" >
                             <span class="dijitReset dijitStretch dijitButtonContents" style="-webkit-user-select: none;">
                                 <span class="dijitReset dijitInline dijitIcon dijitNoIcon"></span>
@@ -571,25 +574,26 @@
                         </span>
                         <input name="refresh" type="hidden" value="Zeruj" class="dijitOffScreen" tabindex="-1" role="presentation" data-dojo-attach-point="valueNode">
                     </span>
-                </td>
-            </tr>
-        </table>
-    </fieldset>
-</form>
-<div id="samples">
-    <div id="container"></div>
-</div>
-<script>
-    function openCrossword() {
-        var form = $('#form').serializeArray();
+                    </td>
+                </tr>
+            </table>
+        </fieldset>
+    </form>
+    <div id="samples">
+        <div id="container"></div>
+    </div>
+    <script>
+        function openCrossword() {
+            var form = $('#form').serializeArray();
 
-        var res = [];
-        for(elem in form)
-            if(form[elem].name == 'translation' && form[elem].value == 'mieszane') {
-                alert('Krzyżówka nie może być mieszana'); return;
-            }
+            var res = [];
+            for(elem in form)
+                if(form[elem].name == 'translation' && form[elem].value == 'mieszane') {
+                    alert('Krzyżówka nie może być mieszana'); return;
+                }
 
-        var win = window.open('/sowkomat/public/asystent/krzyzowka/index.php?' + $('#form').serialize(), '_blank');
-        win.focus();
-    }
-</script>
+            var win = window.open('/sowkomat/public/asystent/krzyzowka/index.php?' + $('#form').serialize(), '_blank');
+            win.focus();
+        }
+    </script>
+<?php endif; ?>
