@@ -275,6 +275,7 @@
         <h2>Units: <?= $unitsInStr; ?></h2>
         <h3><?= $trslFromTo; ?></h3>
         <h2 id="play-sound-checkbox"><label for="toggle1">Sound: </label><input id="toggle1" type="checkbox" name="toggle1" /></h2>
+        <h1 id="congrads" style="display: none">Gratulacje z powodu zakończenia krzyżówki :)</h1>
     </div>
 
     <div id="puzzle-wrapper"><!-- crossword puzzle appended here --></div>
