@@ -264,6 +264,13 @@
         div.tog.on:after{left:65px;}
         div.tog.on:hover:after{left:60px;}
 
+        #play-sound-checkbox {
+            text-align: center;
+            position: absolute;
+            top: 3%;
+            right: 10%;
+        }
+
 	</style>
 
 </head>
@@ -274,9 +281,9 @@
         <h1><?= $bookTitle; ?></h1>
         <h2>Units: <?= $unitsInStr; ?></h2>
         <h3><?= $trslFromTo; ?></h3>
-        <h2 id="play-sound-checkbox"><label for="toggle1">Sound: </label><input id="toggle1" type="checkbox" name="toggle1" /></h2>
         <h1 id="congrads" style="display: none">Gratulacje z powodu zakończenia krzyżówki :)</h1>
     </div>
+    <h2 id="play-sound-checkbox"><label for="toggle1">Sound: </label><input id="toggle1" type="checkbox" name="toggle1" /></h2>
 
     <div id="puzzle-wrapper"><!-- crossword puzzle appended here --></div>
 
