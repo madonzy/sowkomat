@@ -24,6 +24,7 @@
     <div class="test left">
         <?= $this->form; ?>
     </div>
+    <?php if(!isset($_GET['more-details'])) : ?>
     <div class="dictionary right">
         <?= $this->render('home/parts/instructions.phtml'); ?>
         <form action="http://www.1a.biz.pl/slownik/szukajskr.php" method="post" encType="multipart/form-data" target="dictionary">
@@ -62,4 +63,5 @@
             </fieldset>
         </form>
     </div>
+    <?php endif; ?>
 </div>
